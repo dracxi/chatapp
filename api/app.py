@@ -19,3 +19,6 @@ app.include_router(User.router)
 app.include_router(Message.router)
 app.include_router(Group.router)
 
+@app.get('/')
+async def main():
+    return {}
