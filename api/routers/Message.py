@@ -103,11 +103,10 @@ async def fetch_message(id: int, db: Session = Depends(get_db)):
         .limit(25)
         .all()
     )
-    if not get_chat_id_info(id,db):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Chat not found"
-        )
     messages = []
+    if not get_chat_id_info(id,db):
+        return messages
+    
     for message, user in messagesList:
         data = {
             "channelId": id,
