@@ -6,3 +6,5 @@ __pycache__/
 /venv
 .vercel
 test.py
+/alembic
+alembic.ini

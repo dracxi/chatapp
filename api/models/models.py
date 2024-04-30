@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime , JSON, Boolean
+from sqlalchemy import Column, Integer, String, DateTime , JSON, Boolean, BigInteger
 from api.db.database import Base
 from datetime import datetime
 
@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     email = Column(String, unique=True, nullable=False)
     username = Column(String, unique=True, nullable=False)
     nickname = Column(String, nullable=False)
@@ -17,6 +17,7 @@ class User(Base):
     status = Column(Integer , default=0)
     joindate = Column(DateTime, default=datetime.now)
     hashed_password = Column(String)
+    is_deleted = Column(Boolean, default=False)
 
     sent_messages = relationship("Message", back_populates="sender")
     groups = relationship('GroupMember', back_populates='member')
@@ -26,8 +27,8 @@ class User(Base):
 class Friend(Base):
     __tablename__ = "friends"
     friendshipId = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    friend_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
+    friend_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
     is_blocked = Column(Boolean, default=False)
     nickname = Column(String, default=None)
     notes = Column(String, default=None)
@@ -38,12 +39,12 @@ class Friend(Base):
 
 class Group(Base):
     __tablename__ = "groups"
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String)
     avatar = Column(String, default="https://i.ibb.co/DpZXbnN/user-3296.png")
     dateCreated = Column(DateTime, default=datetime.now)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
 
     messages = relationship("Message", back_populates="group")
     members = relationship('GroupMember', back_populates='group')
@@ -52,9 +53,9 @@ class Group(Base):
 
 class GroupMember(Base):
     __tablename__ = "groupmembers"
-    joinId = Column(Integer,primary_key=True)
-    member_id = Column(Integer,ForeignKey("users.id"),nullable=False)
-    group_id = Column(Integer,ForeignKey('groups.id'),nullable=False)
+    joinId = Column(BigInteger,primary_key=True)
+    member_id = Column(BigInteger,ForeignKey("users.id"),nullable=False)
+    group_id = Column(BigInteger,ForeignKey('groups.id'),nullable=False)
     is_admin = Column(Boolean,default=False)
     is_mod = Column(Boolean,default=False)
     joinDate = Column(DateTime, default=datetime.now)
@@ -65,10 +66,10 @@ class GroupMember(Base):
 
 class Message(Base):
     __tablename__ = "messages"
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
     content = Column(JSON, nullable=False)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
+    sender_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    group_id = Column(BigInteger, ForeignKey("groups.id"), nullable=False)
     timeSent = Column(DateTime, default=datetime.now)
 
     sender = relationship("User", back_populates="sent_messages")
