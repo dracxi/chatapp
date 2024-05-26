@@ -31,6 +31,8 @@ def verify_token_access(token: str, credentials_exception):
         expire = payload.get('expire')
         if id is None:
             raise credentials_exception
+        if expire is None:
+            raise credentials_exception
         token_data = DataToken(id=str(id),expire=str(expire))
     except JWTError as e:
         print(e)

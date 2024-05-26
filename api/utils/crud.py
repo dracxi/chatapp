@@ -2,6 +2,7 @@ from api.db.database import SessionLocal
 from sqlalchemy.orm import Session
 from sqlalchemy import union
 from api.models.models import User, Message , Group
+from fastapi import HTTPException, status, Depends
 
 def get_db():
     try:
@@ -34,4 +35,12 @@ def get_chat_id_info(id, session):
     if user:
         user.type = "user"
         return user
-    return None
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Chat Not Found!")
+
+def group_info(id: int, session):
+    group = session.query(Group).get(id)
+    if group:
+        group.type = "group"
+        return group
+    return HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Group Not Found!")
+
