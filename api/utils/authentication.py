@@ -11,7 +11,7 @@ import os
 load_dotenv()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = "rkdjkfjdnkbndfbkjdnbk"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60*24*7
 

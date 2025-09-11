@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from api.utils.crud import get_db
 from api.models.models import User, Message, Group, LastSeen, GroupMember
 from api.utils.authentication import get_current_user
+
 router = APIRouter(prefix='/user', tags=['Users'])
 
 @router.get('/u/{username}')

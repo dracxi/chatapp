@@ -1,6 +1,8 @@
+from sqlite3 import IntegrityError
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm , OAuth2PasswordBearer
 from fastapi.exceptions import HTTPException
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from api.schema.schema import UserFrom
 from api.models.models import User
@@ -14,16 +16,31 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/register")
 async def register(userDetails: UserFrom, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.email == userDetails.email or User.username == userDetails.username).first()
+    existing_user = db.query(User).filter(
+        or_(User.email == userDetails.email, User.username == userDetails.username)
+    ).first()
     if existing_user:
-        raise HTTPException(status_code=400, detail="user is already registered")
+        raise HTTPException(status_code=400, detail="User already registered")
+
     hashed_password = pwd_context.hash(userDetails.password)
-    user = User(email=userDetails.email, hashed_password=hashed_password, nickname = userDetails.nickname , username = userDetails.username, id = generate_unique_id(db))
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    token = create_access_token({'user_id':user.id})
-    return {'id':user.id,'token':token,"detail":"registered successfully"}
+    user = User(
+        email=userDetails.email,
+        hashed_password=hashed_password,
+        nickname=userDetails.nickname,
+        username=userDetails.username,
+        id=generate_unique_id(db)
+    )
+
+    try:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="User already exists")
+
+    token = create_access_token({'user_id': user.id})
+    return {"id": user.id, "token": token, "detail": "registered successfully"}
 
 
 @router.post("/login")
