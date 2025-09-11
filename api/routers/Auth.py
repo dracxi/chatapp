@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 from fastapi import APIRouter, Depends
-from fastapi.security import OAuth2PasswordRequestForm , OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm 
 from fastapi.exceptions import HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
