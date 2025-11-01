@@ -8,3 +8,5 @@ __pycache__/
 test.py
 /alembic
 alembic.ini
+.vscode/
+fix_database.py

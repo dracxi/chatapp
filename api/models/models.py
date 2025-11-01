@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean, BigInteger, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Boolean, BigInteger, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from api.db.database import Base
 from datetime import datetime
@@ -12,7 +12,9 @@ class User(Base):
     nickname = Column(String, nullable=False)
     bio = Column(String)
     avatar = Column(String, default="https://i.ibb.co/DpZXbnN/user-3296.png")
-    status = Column(Integer, default=0)
+    status = Column(Integer, default=0)  # 0=offline, 1=online, 2=away, 3=busy
+    last_seen = Column(DateTime, default=datetime.now)
+    is_online = Column(Boolean, default=False)
     joindate = Column(DateTime, default=datetime.now)
     hashed_password = Column(String)
     is_deleted = Column(Boolean, default=False)
@@ -29,12 +31,17 @@ class Friend(Base):
     friendshipId = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
     friend_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
+    status = Column(String, default='pending')  # 'pending', 'accepted', 'rejected', 'blocked'
+    requester_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)  # Who sent the request
     is_blocked = Column(Boolean, default=False)
     nickname = Column(String, default=None)
     notes = Column(String, default=None)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     user = relationship('User', foreign_keys=[user_id], back_populates='friends')
     friend = relationship('User', foreign_keys=[friend_id])
+    requester = relationship('User', foreign_keys=[requester_id])
 
 
 class Group(Base):
@@ -55,13 +62,17 @@ class GroupMember(Base):
     __tablename__ = "groupmembers"
     joinId = Column(BigInteger, primary_key=True)
     member_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
-    group_id = Column(BigInteger, ForeignKey('groups.id'), nullable=False, unique=True)
+    group_id = Column(BigInteger, ForeignKey('groups.id'), nullable=False)
     is_admin = Column(Boolean, default=False)
     is_mod = Column(Boolean, default=False)
     joinDate = Column(DateTime, default=datetime.now)
 
     member = relationship('User', back_populates='groups')
     group = relationship('Group', back_populates='members')
+    
+    __table_args__ = (
+        UniqueConstraint('member_id', 'group_id', name='unique_member_group'),
+    )
 
 
 class Message(Base):
@@ -70,10 +81,16 @@ class Message(Base):
     content = Column(JSON, nullable=False)
     sender_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
     group_id = Column(BigInteger, ForeignKey("groups.id"), nullable=False)
+    reply_to_id = Column(BigInteger, ForeignKey("messages.id"), nullable=True)
     timeSent = Column(DateTime, default=datetime.now)
+    is_edited = Column(Boolean, default=False)
+    edited_at = Column(DateTime, nullable=True)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
 
     sender = relationship("User", back_populates="sent_messages")
     group = relationship("Group", back_populates="messages")
+    reply_to = relationship("Message", remote_side=[id], backref="replies")
 
 
 class DirectMessage(Base):
@@ -82,10 +99,16 @@ class DirectMessage(Base):
     content = Column(JSON, nullable=False)
     sender_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
     receiver_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    reply_to_id = Column(BigInteger, ForeignKey("direct_messages.id"), nullable=True)
     timeSent = Column(DateTime, default=datetime.now)
+    is_edited = Column(Boolean, default=False)
+    edited_at = Column(DateTime, nullable=True)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
 
     sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_direct_messages")
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_direct_messages")
+    reply_to = relationship("DirectMessage", remote_side=[id], backref="replies")
 
 
 class LastSeen(Base):

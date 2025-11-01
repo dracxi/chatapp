@@ -15,10 +15,8 @@ def generate_unique_id(session: Session) -> int:
 
 async def broadcast(chatid:int , message: dict , channel:Dict[int,List[WebSocket]]):
     if chatid in channel:
-        for channel in channel[chatid]:
-            await channel.send_json(message)
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="WebSocket connection not found for channel ID",
-        )
+        for websocket in channel[chatid]:
+            try:
+                await websocket.send_json(message)
+            except Exception as e:
+                print(f"Failed to send message to websocket: {e}")
