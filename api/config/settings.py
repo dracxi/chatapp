@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator
 
 class Settings(BaseSettings):
-    database_url: str = "sqlite:///./chat_app.db"
+    database_url: str = "sqlite:///./mydb.db"
     
     jwt_secret_key: str = "your-super-secret-jwt-key-change-this-in-production"
     jwt_algorithm: str = "HS256"
